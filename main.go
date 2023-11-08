@@ -185,7 +185,7 @@ func (f *IceCreamFacade) OrderIceCream(flavor IceCream, addToppings []IceCream) 
       fmt.Printf("You bought a %s for $%d\n", descript+description, totalCost)
     }
 
-    f.totalOrders++
+ 
     fmt.Println("Total orders:", f.totalOrders)
     f.userMoney -= totalCost
     fmt.Printf("Remaining money: $%d\n", f.userMoney)
@@ -217,21 +217,6 @@ func (c *ClassicalIceCream) getCost() int {
     totalCost += topping.getCost()
   }
   return totalCost
-}
-
-func (c *ClassicalIceCream) SetFlavor(flavor IceCream) {
-  c.flavor = flavor
-}
-
-func (c *ClassicalIceCream) AddTopping(topping IceCream) {
-  c.toppings = append(c.toppings, topping)
-}
-
-func (c *ClassicalIceCream) Build() *ClassicalIceCream {
-  return &ClassicalIceCream{
-    flavor:   c.flavor,
-    toppings: c.toppings,
-  }
 }
 
 
