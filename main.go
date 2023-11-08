@@ -304,6 +304,7 @@ func main() {
           break
         }
       }
+      continue
     }
 
     if choice == 3 {
