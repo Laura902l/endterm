@@ -1,6 +1,7 @@
 # Endterm (Yersin Berdikulov, Laura Kazikhanova, Alimzhan Koshikov)
-Factory
-Facade
-Decorator
-Builder
-Singleton
+# SE-2209
+# Factory
+# Facade
+# Decorator
+# Builder
+# Singleton
