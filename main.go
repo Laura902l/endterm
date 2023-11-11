@@ -3,6 +3,7 @@ package main
 import (
   "fmt"
   "sync"
+
 )
 
 // Interface for Ice Cream
@@ -132,96 +133,94 @@ func (d *MaraschinoDecorator) getCost() int {
   return cost
 }
 
-//Singleton
-type FirstOrderDiscount struct {
-    Value float32
-}
 
-var once sync.Once
-var instance *FirstOrderDiscount
-
-func getInstance() *FirstOrderDiscount {
-    once.Do(func() {
-        instance = &FirstOrderDiscount{
-            Value: 0.30, // 30%
-        }
-    })
-    return instance
-}
-
-// IceCreamFacade - Фасад для управления заказами мороженого
+//Facade
 type IceCreamFacade struct {
-  userMoney            int
-  totalIceCreamsBought int
-  totalOrders          int
+	userMoney   int
+	totalOrders int
 }
 
 func NewIceCreamFacade(userMoney int) *IceCreamFacade {
-  return &IceCreamFacade{
-    userMoney: userMoney,
-  }
+	return &IceCreamFacade{
+		userMoney: userMoney,
+	}
 }
 
 func (f *IceCreamFacade) OrderIceCream(flavor IceCream, addToppings []IceCream) {
-  totalCost := flavor.getCost()
-  descript := flavor.getDescription()
-  description := ""
+	totalCost := calculateTotalCost(flavor, addToppings)
+	discount := getInstance(totalCost).total
 
-  for _, topping := range addToppings {
-    totalCost += topping.getCost()
-    description += topping.getDescription()
-  }
-  totalCost -= flavor.getCost() * len(addToppings)
-
-  if f.userMoney >= totalCost {
-    f.totalOrders++
-    if f.totalOrders == 1 {
-      discount := getInstance().Value
-      discountAmount := int(float32(totalCost) * discount)
-      totalCost -= discountAmount
-
-      fmt.Printf("You bought a %s for $%d with a 30%% discount on your first order.\n", descript+description, totalCost)
-    } else {
-      fmt.Printf("You bought a %s for $%d\n", descript+description, totalCost)
-    }
-
- 
-    fmt.Println("Total orders:", f.totalOrders)
-    f.userMoney -= totalCost
-    fmt.Printf("Remaining money: $%d\n", f.userMoney)
-  } else {
-    fmt.Println("Not enough money to buy another ice cream.")
-  }
+	if f.userMoney < (totalCost - discount) {
+    fmt.Println("-------------------------------------------")
+		fmt.Println("Not enough money to buy another ice cream")
+    fmt.Println("-------------------------------------------")
+	} else {
+		f.totalOrders++
+		printOrderDetails(flavor, addToppings, totalCost, discount, f.totalOrders)
+		f.userMoney -= totalCost - discount
+	}
+}
+func calculateTotalCost(flavor IceCream, addToppings []IceCream) int {
+	totalCost := flavor.getCost()
+	for _, topping := range addToppings {
+		totalCost += topping.getCost()
+	}
+	totalCost -= flavor.getCost() * len(addToppings)
+	return totalCost
 }
 
-//Builder pattern
-type ClassicalIceCream struct {
-  flavor   IceCream
-  toppings []IceCream
+func hasEnoughMoney(userMoney, totalCost int) bool {
+	return userMoney >= totalCost
 }
 
-func classicBuilder(flavor IceCream, toppings []IceCream) *ClassicalIceCream {
-  return &ClassicalIceCream{
-    flavor:   flavor,
-    toppings: toppings,
-  }
+func printOrderDetails(flavor IceCream, addToppings []IceCream, totalCost, discount, totalOrders int) {
+	descript := flavor.getDescription()
+	description := ""
+
+	for _, topping := range addToppings {
+		description += topping.getDescription()
+	}
+
+	fmt.Printf("You bought a %s for $%d\n", descript+description, totalCost-discount)
+	fmt.Println("Total orders:", totalOrders)
+
 }
 
-func (c *ClassicalIceCream) getDescription() string {
-  return c.flavor.getDescription()
+func (f *IceCreamFacade) GetRemainingMoney() int {
+	return f.userMoney
 }
 
-func (c *ClassicalIceCream) getCost() int {
-  totalCost := c.flavor.getCost()
-  for _, topping := range c.toppings {
-    totalCost += topping.getCost()
-  }
-  return totalCost
+
+//Singleton
+type FirstOrderDiscount struct {
+	total int 
 }
 
+var discountInstance *FirstOrderDiscount
+var discountLock sync.Mutex
+
+func getInstance(totalCost int) *FirstOrderDiscount {
+	discountLock.Lock()
+	defer discountLock.Unlock()
+
+	if discountInstance == nil {
+		discount := int(0.3 * float64(totalCost))
+    fmt.Println("-----------------------------------")
+		fmt.Println(  "For the first order  discount 30%")
+		fmt.Println("-----------------------------------")
+		discountInstance = &FirstOrderDiscount{total: discount}
+	} else {
+    discount := 0
+    discountInstance = &FirstOrderDiscount{total: discount}
+		
+	}
+
+	return discountInstance
+}
 
 func main() {
-  fmt.Println("Welcome to the ice cream store!")
+  fmt.Println("-----------------------------------")
+  fmt.Println("  Welcome to the ice cream store!")
   fmt.Println("-----------------------------------")
   var userMoney int
 
@@ -232,11 +231,11 @@ func main() {
     if userMoney >= 200 { 
      break 
     } else { 
-     fmt.Println("You don't have enough money to buy any ice cream.") 
+     fmt.Println("You don't have enough money to buy any ice cream. Should be more than 200") 
     } 
      }
 
-  iceCreamStore := NewIceCreamFacade(userMoney)
+  iceCreamStore:= NewIceCreamFacade(userMoney)
 
   for {
     var choice int
@@ -255,11 +254,12 @@ func main() {
         fmt.Println("2 ------------ Creamy Ice Cream with Chocolate Chips ($275)")
         fmt.Println("3 ------------ Strawberry Ice Cream with Fruit ($260)")
         fmt.Println("4 ------------ Back")
-        fmt.Print("Select a classic ice cream flavor: ")
+        fmt.Print("Select a classical ice cream flavor: ")
         fmt.Scanln(&choice)
 
         var flavor IceCream
         var toppings []IceCream
+        backToMainMenu := false
 
         switch choice {
         case 1:
@@ -272,22 +272,32 @@ func main() {
           flavor, _ = getIceCream(3)
           toppings = append(toppings, &FruitDecorator{flavor})
         case 4:
-          break  
+          backToMainMenu = true 
+        break
         default:
           fmt.Println("Invalid choice")
           continue
         }
+     
+      if backToMainMenu {
+        fmt.Println("Going back to main menu.")
+        break
+      }
 
-        classicalIceCream := classicBuilder(flavor, toppings)
-        iceCreamStore.OrderIceCream(classicalIceCream, toppings)
-
-        fmt.Print("Do you want to buy another classic ice cream? (1 - Yes, 2 - No): ")
-        fmt.Scanln(&choice)
-
-        if choice == 2 {
-          
-          break
+ 
+          iceCreamStore.OrderIceCream(flavor, toppings)
+          iceCreamRemaining := iceCreamStore.GetRemainingMoney()
+          fmt.Println("Your Remaining Money: ", iceCreamRemaining)
+          fmt.Println("Do you want to buy another classic ice cream? (1 - Yes, 2 - No): ")
+        
+          fmt.Scanln(&choice)
+  
+          if choice == 2 {
+            
+            break
+  
         }
+   
       }
       continue
     }
@@ -313,7 +323,7 @@ func main() {
 
     switch choice {
     case 1:
-      //   builder.AddFlavor(flavor)
+   
       flavor, _ = getIceCream(1)
     case 2:
       flavor, _ = getIceCream(2)
@@ -361,8 +371,10 @@ func main() {
     }
 
     iceCreamStore.OrderIceCream(flavor, toppings)
-
-    fmt.Print("Do you want to buy another ice cream?: ")
+    iceCreamRemaining :=iceCreamStore.GetRemainingMoney()
+    fmt.Println("Your Remaining Money: ", iceCreamRemaining)
+    fmt.Println("Do you want to buy another ice cream?: ")
+    
 
     for {
       fmt.Println("1 - Yes, 2 - No")
