@@ -169,9 +169,7 @@ func calculateTotalCost(flavor IceCream, addToppings []IceCream) int {
 	return totalCost
 }
 
-func hasEnoughMoney(userMoney, totalCost int) bool {
-	return userMoney >= totalCost
-}
+
 
 func printOrderDetails(flavor IceCream, addToppings []IceCream, totalCost, discount, totalOrders int) {
 	descript := flavor.getDescription()
