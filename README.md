@@ -4,7 +4,6 @@ SE-2209 <br>
   <li>Factory</li>
   <li>Facade</li>
   <li>Decorator</li>
-  <li>Builder</li>
   <li>Singleton</li>
   
 </ul>
