@@ -16,17 +16,6 @@ This Go program simulates an ice cream store where users can order different ice
 - **Singleton Pattern**: Ensures the first-order discount is applied only once.
 - **Facade Pattern**: Simplifies the process of ordering and purchasing ice cream by handling the interactions between the system components.
 
-## Installation
-1. Make sure you have Go installed. You can download it from [here](https://go.dev/dl/).
-2. Clone the repository:
-    ```bash
-    git clone <repository-url>
-    cd ice-cream-shop
-    ```
-3. Run the program:
-    ```bash
-    go run main.go
-    ```
 
 ## How to Use
 1. **Start the Program**: The user will be prompted to input the amount of money they have to spend. You need a minimum of 200 units to proceed.
