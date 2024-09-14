@@ -1,6 +1,6 @@
-## Ice Cream Shop Simulator
+# Ice Cream Shop Simulator
 
-# Overview
+## Overview
 This Go program simulates an ice cream store where users can order different ice cream flavors with various toppings. It features user input for selecting ice cream types, adding toppings, and processing orders, including a discount on the first order. The application uses several design patterns to manage the complexity of the system.
 
 ## Features
